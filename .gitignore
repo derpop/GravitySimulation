@@ -1,0 +1,18 @@
+# Unity specific
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Asset meta data should only be ignored when the corresponding asset is also ignored
+# *.meta
+
+# Uncomment this line if you have a pro license of Unity and do not want to share it
+# [Ll]icense.xml
+
+# OS specific files
+.DS_Store
+Thumbs.db
