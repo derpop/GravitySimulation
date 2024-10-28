@@ -30,8 +30,6 @@ public class GravityObject : MonoBehaviour
     public void UpdatePosition(float timeStep)
     {
         // Apply damping to control velocity growth
-        velocity *= dampingFactor;
-
         // Update position based on the current velocity
         transform.position += velocity * timeStep;
     }

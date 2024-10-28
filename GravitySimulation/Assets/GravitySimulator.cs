@@ -13,6 +13,7 @@ public class GravitySimulator : MonoBehaviour
     public int localRadius;
     public float GalaxySize;
     public float centralMass;
+    public int refresh = 1;
     public Vector2 minMaxMassValues;
     public Vector3 simulationBounds;
     public Vector3 Galaxy1Position;
@@ -22,6 +23,7 @@ public class GravitySimulator : MonoBehaviour
     public GravityObject gravityObject;
     private PointOctree<GravityObject> gravityObjects;
     private List<GravityObject> gravList;
+    private int frameCount;
 
 
     public void CreateGalaxy(int numParticle,Vector3 galaxyPosition, Vector3 initalVelocity){
@@ -60,14 +62,17 @@ public class GravitySimulator : MonoBehaviour
     {
         gravList = new List<GravityObject>();
         gravityObjects = new PointOctree<GravityObject>(Math.Max(Math.Max(simulationBounds.x,simulationBounds.y),simulationBounds.z), transform.position, 1);
-        CreateGalaxy(numParticlesPerGalaxy,Galaxy1Position,Galaxy1Velocity);        
+        CreateGalaxy(numParticlesPerGalaxy,Galaxy1Position,Galaxy1Velocity);
+        CreateGalaxy(numParticlesPerGalaxy,Galaxy2Position,Galaxy2Velocity);
     }
 
     // Update is called once per frame
     void Update()
 {
-    float timeStep = Time.fixedDeltaTime;;
+    frameCount++;
+    float timeStep = Time.fixedDeltaTime;
     int numChecks =0;
+    if(frameCount%refresh==0){
     gravityObjects = new PointOctree<GravityObject>(
         Math.Max(Math.Max(simulationBounds.x, simulationBounds.y), simulationBounds.z),
         transform.position,
@@ -81,6 +86,8 @@ public class GravitySimulator : MonoBehaviour
     {
         GravityObject[] nearbyObjects = gravityObjects.GetNearby(obj.transform.position, localRadius);
         obj.ApplyForces(nearbyObjects.ToArray(),timeStep);
+        numChecks += nearbyObjects.Length;
+    }
     }
     foreach (GravityObject gravityObject1 in gravList)
     {
@@ -88,10 +95,11 @@ public class GravitySimulator : MonoBehaviour
     }
     Debug.Log(numChecks);
 }
-
     void OnDrawGizmos() 
     {
-	gravityObjects.DrawAllBounds();
-	gravityObjects.DrawAllObjects();
+        if(gravityObjects!=null){
+        gravityObjects.DrawAllBounds();
+	    gravityObjects.DrawAllObjects();
+        }
     }
 }
