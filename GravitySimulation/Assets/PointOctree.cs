@@ -16,7 +16,7 @@ public class PointOctree<T> {
 		initialSize = initialWorldSize;
 		minSize = minNodeSize;
 		rootNode = new PointOctreeNode<T>(initialSize, minSize, initialWorldPos);
-	}
+	}	
 
 	public void Add(T obj, Vector3 objPos) {
 		int count = 0;

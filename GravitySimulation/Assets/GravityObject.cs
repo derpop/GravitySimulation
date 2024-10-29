@@ -3,11 +3,11 @@ using UnityEngine;
 
 public class GravityObject : MonoBehaviour
 {
-    public float mass;                 // Mass of the particle
-    public Vector3 velocity = Vector3.zero;   // Current velocity of the particle
-    public float G;              // Gravitational constant, adjust for simulation scale
-    public float softeningFactor; // Softening factor to prevent extreme forces at close distances
-    public float dampingFactor;    // Damping factor to reduce excessive energy over time
+    public float mass;           
+    public Vector3 velocity = Vector3.zero;   
+    public float G;              
+    public float softeningFactor; 
+    public float dampingFactor;    
 
     /// <summary>
     /// Calculates and applies gravitational forces from other particles to update this particle's velocity.

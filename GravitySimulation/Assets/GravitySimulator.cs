@@ -27,8 +27,6 @@ public class GravitySimulator : MonoBehaviour
 
 
     public void CreateGalaxy(int numParticle,Vector3 galaxyPosition, Vector3 initalVelocity){
-
-
         // Spawn each particle with a slight offset and initial velocity
         for (int i = 0; i < numParticle; i++)
         {
@@ -45,7 +43,7 @@ public class GravitySimulator : MonoBehaviour
 
             // Instantiate particle
             GravityObject particle = Instantiate(gravityObject, position, Quaternion.identity);
-            particle.mass = Random.Range(1f, 5f); // Assign random mass for variety
+            particle.mass = Random.Range(minMaxMassValues.x, minMaxMassValues.y); // Assign random mass for variety
 
             // Calculate initial orbital velocity for disk rotation
             Vector3 toCenter = galaxyPosition - particle.transform.position;
@@ -58,12 +56,38 @@ public class GravitySimulator : MonoBehaviour
             gravList.Add(particle);
         }
     }
+    public bool outOfBounds(GravityObject obj){
+        if(obj.transform.position.x >= -simulationBounds.x && obj.transform.position.x <= simulationBounds.x){
+            if(obj.transform.position.y >= -simulationBounds.y && obj.transform.position.y <= simulationBounds.y){
+                if(obj.transform.position.z >= -simulationBounds.z && obj.transform.position.z <= simulationBounds.z){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    public void CreateEqualDistribution(int numParticle){
+        for (int i = 0; i < numParticle; i++)
+        {
+            GravityObject particle = Instantiate(gravityObject, new Vector3(Random.Range(-simulationBounds.x/2,simulationBounds.x/2),
+                                                                            Random.Range(-simulationBounds.y/2,simulationBounds.y/2),
+                                                                            Random.Range(-simulationBounds.z/2,simulationBounds.z/2)),
+                                                                            Quaternion.identity);
+            particle.mass = Random.Range(minMaxMassValues.x, minMaxMassValues.y);
+            particle.G = G;
+            particle.softeningFactor = softeningFactor;
+            particle.dampingFactor = dampingFactor;
+            gravList.Add(particle);
+
+        }
+    }
     void Start()
     {
         gravList = new List<GravityObject>();
         gravityObjects = new PointOctree<GravityObject>(Math.Max(Math.Max(simulationBounds.x,simulationBounds.y),simulationBounds.z), transform.position, 1);
-        CreateGalaxy(numParticlesPerGalaxy,Galaxy1Position,Galaxy1Velocity);
-        CreateGalaxy(numParticlesPerGalaxy,Galaxy2Position,Galaxy2Velocity);
+        // CreateGalaxy(numParticlesPerGalaxy,Galaxy1Position,Galaxy1Velocity);
+        // CreateGalaxy(numParticlesPerGalaxy,Galaxy2Position,Galaxy2Velocity);
+        CreateEqualDistribution(numParticlesPerGalaxy);
     }
 
     // Update is called once per frame
@@ -87,14 +111,12 @@ public class GravitySimulator : MonoBehaviour
         GravityObject[] nearbyObjects = gravityObjects.GetNearby(obj.transform.position, localRadius);
         obj.ApplyForces(nearbyObjects.ToArray(),timeStep);
         numChecks += nearbyObjects.Length;
+        obj.UpdatePosition(timeStep);
     }
-    }
-    foreach (GravityObject gravityObject1 in gravList)
-    {
-        gravityObject1.UpdatePosition(timeStep);
     }
     Debug.Log(numChecks);
 }
+
     void OnDrawGizmos() 
     {
         if(gravityObjects!=null){
