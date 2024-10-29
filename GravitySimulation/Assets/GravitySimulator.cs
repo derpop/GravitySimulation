@@ -106,10 +106,7 @@ public class GravitySimulator : MonoBehaviour
     if(frameCount%refresh==0){
         gravityObjects.rebuild(gravList);
         nodes = gravityObjects.GetAllNodes();
-        foreach (PointOctreeNode<GravityObject> node in nodes)
-        {
-            node.CalculateCenterOfMass();
-        }
+        gravityObjects.getRoot().CalculateCenterOfMass();
         foreach (GravityObject obj in gravList)
         {
         GravityObject[] nearbyObjects = gravityObjects.GetNearby(obj.transform.position, localRadius);

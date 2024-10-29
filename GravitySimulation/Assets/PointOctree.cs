@@ -89,6 +89,9 @@ public class PointOctree<T> where T : IObject{
     rootNode.GetAllNodesRecursive(allNodes);
     return allNodes;
 	}
+	public PointOctreeNode<T> getRoot(){
+		return rootNode;
+	} 
 
 
 
