@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -13,6 +14,7 @@ public class GravitySimulator : MonoBehaviour
     public int localRadius;
     public float GalaxySize;
     public float centralMass;
+    public float theta;
     public int refresh = 1;
     public Vector2 minMaxMassValues;
     public Vector3 simulationBounds;
@@ -22,6 +24,7 @@ public class GravitySimulator : MonoBehaviour
     public Vector3 Galaxy2Velocity;
     public GravityObject gravityObject;
     private PointOctree<GravityObject> gravityObjects;
+    private List<PointOctreeNode<GravityObject>> nodes;
     private List<GravityObject> gravList;
     private int frameCount;
 
@@ -52,20 +55,20 @@ public class GravitySimulator : MonoBehaviour
             particle.G = G;
             particle.softeningFactor = softeningFactor;
             particle.dampingFactor = dampingFactor;
+            particle.theta = theta;
             particle.velocity += initalVelocity;
             gravList.Add(particle);
         }
     }
-    public bool outOfBounds(GravityObject obj){
-        if(obj.transform.position.x >= -simulationBounds.x && obj.transform.position.x <= simulationBounds.x){
-            if(obj.transform.position.y >= -simulationBounds.y && obj.transform.position.y <= simulationBounds.y){
-                if(obj.transform.position.z >= -simulationBounds.z && obj.transform.position.z <= simulationBounds.z){
-                    return true;
-                }
-            }
-        }
-        return false;
+    public bool outOfBounds(GravityObject obj) {
+    
+    Vector3 pos = obj.transform.position;
+    
+    return pos.x < -simulationBounds.x || pos.x > simulationBounds.x ||
+           pos.y < -simulationBounds.y || pos.y > simulationBounds.y ||
+           pos.z < -simulationBounds.z || pos.z > simulationBounds.z;
     }
+
     public void CreateEqualDistribution(int numParticle){
         for (int i = 0; i < numParticle; i++)
         {
@@ -76,6 +79,7 @@ public class GravitySimulator : MonoBehaviour
             particle.mass = Random.Range(minMaxMassValues.x, minMaxMassValues.y);
             particle.G = G;
             particle.softeningFactor = softeningFactor;
+            particle.theta = theta;
             particle.dampingFactor = dampingFactor;
             gravList.Add(particle);
 
@@ -85,36 +89,47 @@ public class GravitySimulator : MonoBehaviour
     {
         gravList = new List<GravityObject>();
         gravityObjects = new PointOctree<GravityObject>(Math.Max(Math.Max(simulationBounds.x,simulationBounds.y),simulationBounds.z), transform.position, 1);
-        // CreateGalaxy(numParticlesPerGalaxy,Galaxy1Position,Galaxy1Velocity);
-        // CreateGalaxy(numParticlesPerGalaxy,Galaxy2Position,Galaxy2Velocity);
-        CreateEqualDistribution(numParticlesPerGalaxy);
+        CreateGalaxy(numParticlesPerGalaxy,Galaxy1Position,Galaxy1Velocity);
+        CreateGalaxy(numParticlesPerGalaxy,Galaxy2Position,Galaxy2Velocity);
+        // CreateEqualDistribution(numParticlesPerGalaxy/10);
+        nodes = gravityObjects.GetAllNodes();
     }
 
     // Update is called once per frame
     void Update()
 {
+    List<GravityObject> toRemove = new List<GravityObject>();
     frameCount++;
+    List<PointOctreeNode<GravityObject>> nodes = gravityObjects.GetAllNodes();
     float timeStep = Time.fixedDeltaTime;
     int numChecks =0;
     if(frameCount%refresh==0){
-    gravityObjects = new PointOctree<GravityObject>(
-        Math.Max(Math.Max(simulationBounds.x, simulationBounds.y), simulationBounds.z),
-        transform.position,
-        1
-    );
-    foreach (GravityObject gravityObject in gravList)
-    {
-        gravityObjects.Add(gravityObject,gravityObject.transform.position);
-    }
-    foreach (GravityObject obj in gravList)
-    {
+        gravityObjects.rebuild(gravList);
+        nodes = gravityObjects.GetAllNodes();
+        foreach (PointOctreeNode<GravityObject> node in nodes)
+        {
+            node.CalculateCenterOfMass();
+        }
+        foreach (GravityObject obj in gravList)
+        {
         GravityObject[] nearbyObjects = gravityObjects.GetNearby(obj.transform.position, localRadius);
-        obj.ApplyForces(nearbyObjects.ToArray(),timeStep);
+        obj.ApplyForces(nearbyObjects.ToArray(),nodes,timeStep);
         numChecks += nearbyObjects.Length;
         obj.UpdatePosition(timeStep);
+        if(outOfBounds(obj)){
+            toRemove.Add(obj);
+        }
+        }
     }
+    gravList.RemoveAll(obj => toRemove.Contains(obj));
+    foreach (var obj in toRemove) {
+        UnityEngine.Object.Destroy(obj.gameObject); // Assuming each GravityObject has an associated GameObject
     }
+    
+    // Clear toRemove list after destruction
+    toRemove.Clear();
     Debug.Log(numChecks);
+
 }
 
     void OnDrawGizmos() 

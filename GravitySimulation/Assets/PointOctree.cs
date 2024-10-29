@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PointOctree<T> {
+public class PointOctree<T> where T : IObject{
 	public int Count { get; private set; }
 	PointOctreeNode<T> rootNode;
 	readonly float initialSize;
@@ -16,7 +16,14 @@ public class PointOctree<T> {
 		initialSize = initialWorldSize;
 		minSize = minNodeSize;
 		rootNode = new PointOctreeNode<T>(initialSize, minSize, initialWorldPos);
-	}	
+	}
+	public void rebuild(List<T> objects){
+		rootNode = new PointOctreeNode<T>(initialSize, minSize, Vector3.zero);
+		foreach (T obj in objects)
+		{
+			Add(obj,obj.Position);
+		}
+	}
 
 	public void Add(T obj, Vector3 objPos) {
 		int count = 0;
@@ -77,6 +84,13 @@ public class PointOctree<T> {
 		rootNode.GetAll(objects);
 		return objects;
 	}
+	public List<PointOctreeNode<T>> GetAllNodes() {
+    List<PointOctreeNode<T>> allNodes = new List<PointOctreeNode<T>>();
+    rootNode.GetAllNodesRecursive(allNodes);
+    return allNodes;
+	}
+
+
 
 	public void DrawAllBounds() {
 		rootNode.DrawAllBounds();

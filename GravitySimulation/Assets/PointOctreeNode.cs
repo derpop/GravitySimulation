@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class PointOctreeNode<T> {
+public class PointOctreeNode<T> where T : IObject {
 	// Center of this node
 	public Vector3 Center { get; private set; }
 
@@ -33,11 +33,17 @@ public class PointOctreeNode<T> {
 	// Original bounds size for resizing after temporary expansion
 	Vector3 actualBoundsSize;
 
+	public Vector3 CenterOfMass { get; private set; }
+	public float TotalMass { get; private set; }
+
+
 	// Object structure for items in the octree
-	class OctreeObject {
+	class OctreeObject{
 		public T Obj;
 		public Vector3 Pos;
-	}
+        public float mass;
+
+    }
 
 	// Constructor
 	public PointOctreeNode(float baseLengthVal, float minSizeVal, Vector3 centerVal) {
@@ -49,7 +55,7 @@ public class PointOctreeNode<T> {
 		if (!Encapsulates(bounds, objPos)) {
 			return false; // Position not within bounds
 		}
-		SubAdd(obj, objPos);
+		SubAdd(obj);
 		return true;
 	}
 
@@ -253,10 +259,10 @@ public class PointOctreeNode<T> {
 		childBounds[7] = new Bounds(Center + new Vector3(quarter, -quarter, quarter), childActualSize);
 	}
 
-	void SubAdd(T obj, Vector3 objPos) {
+	void SubAdd(T obj) {
 		if (!HasChildren) {
 			if (objects.Count < NUM_OBJECTS_ALLOWED || (SideLength / 2) < minSize) {
-				OctreeObject newObj = new OctreeObject { Obj = obj, Pos = objPos };
+				OctreeObject newObj = new OctreeObject { Obj = obj, Pos = obj.Position,mass = obj.mass};
 				objects.Add(newObj);
 				return;
 			}
@@ -265,13 +271,13 @@ public class PointOctreeNode<T> {
 				for (int i = objects.Count - 1; i >= 0; i--) {
 					OctreeObject existingObj = objects[i];
 					int bestFitChild = BestFitChild(existingObj.Pos);
-					children[bestFitChild].SubAdd(existingObj.Obj, existingObj.Pos);
+					children[bestFitChild].SubAdd(existingObj.Obj);
 					objects.Remove(existingObj);
 				}
 			}
 		}
-		int bestFit = BestFitChild(objPos);
-		children[bestFit].SubAdd(obj, objPos);
+		int bestFit = BestFitChild(obj.Position);
+		children[bestFit].SubAdd(obj);
 	}
 
 	bool SubRemove(T obj, Vector3 objPos) {
@@ -332,8 +338,45 @@ public class PointOctreeNode<T> {
 		}
 		return totalObjects <= NUM_OBJECTS_ALLOWED;
 	}
+	public void CalculateCenterOfMass() {
+    if (!HasChildren) {
+        // Leaf node: calculate center of mass from OctreeObject instances directly
+        CenterOfMass = Vector3.zero;
+        TotalMass = 0f;
+        foreach (var obj in objects) {
+            CenterOfMass += obj.Pos * obj.mass;  // Use obj.mass directly from OctreeObject
+            TotalMass += obj.mass;
+        }
+        if (TotalMass > 0) CenterOfMass /= TotalMass;
+    } else {
+        // Non-leaf node: aggregate center of mass and total mass from child nodes
+        CenterOfMass = Vector3.zero;
+        TotalMass = 0f;
+        foreach (var child in children) {
+            if (child != null) {
+                child.CalculateCenterOfMass();
+                CenterOfMass += child.CenterOfMass * child.TotalMass;
+                TotalMass += child.TotalMass;
+            }
+        }
+        if (TotalMass > 0) CenterOfMass /= TotalMass;
+    }
+}
 
 	public static float SqrDistanceToRay(Ray ray, Vector3 point) {
 		return Vector3.Cross(ray.direction, point - ray.origin).sqrMagnitude;
+	}
+	public void GetAllNodesRecursive(List<PointOctreeNode<T>> nodes) {
+    // Add this node to the list
+    nodes.Add(this);
+
+    // Check if the node has children and recurse if it does
+    if (HasChildren) {
+        foreach (var child in children) {
+            if (child != null) {
+                child.GetAllNodesRecursive(nodes);
+            }
+        }
+    }
 	}
 }
