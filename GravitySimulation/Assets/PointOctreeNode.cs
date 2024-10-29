@@ -28,7 +28,7 @@ public class PointOctreeNode<T> where T : IObject {
 	Bounds[] childBounds;
 
 	// Maximum objects allowed before subdivision
-	const int NUM_OBJECTS_ALLOWED = 8;
+	const int NUM_OBJECTS_ALLOWED = 15;
 
 	// Original bounds size for resizing after temporary expansion
 	Vector3 actualBoundsSize;

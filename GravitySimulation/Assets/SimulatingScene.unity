@@ -352,14 +352,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16b2fc8c4b8769441bfcb0640b96b08b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  numParticlesPerGalaxy: 500
+  numParticlesPerGalaxy: 1501
   G: 0.008
   softeningFactor: 10
   dampingFactor: 0.995
   localRadius: 2
   GalaxySize: 20
   centralMass: 80
-  theta: 0.4
+  theta: 0.64
   refresh: 1
   minMaxMassValues: {x: 10, y: 30}
   simulationBounds: {x: 100, y: 100, z: 100}
