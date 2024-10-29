@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class PointOctreeNode<T> where T : IObject {
@@ -378,5 +379,8 @@ public class PointOctreeNode<T> where T : IObject {
             }
         }
     }
+	}
+	public PointOctreeNode<T>[] getChildren(){
+		return children;
 	}
 }

@@ -1,18 +1,52 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
+using Unity.Burst;
+using Unity.Collections;
 public interface IObject {
     Vector3 Position { get; set; }
     float mass {get; set;}
 }
+public struct GravityObjectData{
+    public float3 position;
+    public float3 velocity;
+    public float mass;
+}
+public static class GravityCalculations {
+    [BurstCompile]
+    public static float3 CalculateLocalForce(GravityObjectData particle, GravityObjectData other, float G, float softeningFactor) {
+        if (particle.position.Equals(other.position)) return float3.zero;
 
+        float3 direction = other.position - particle.position;
+        float distance = math.sqrt(math.lengthsq(direction));
+        float forceMagnitude = G * particle.mass * other.mass / (distance * distance + softeningFactor*softeningFactor);
+
+        return math.normalize(direction) * forceMagnitude;
+    }
+
+    [BurstCompile]
+    public static float3 CalculateLargeScaleForce(GravityObjectData particle, NativeArray<float3> nodeCentersOfMass, NativeArray<float> nodeTotalMasses, NativeArray<float> nodeSideLengths, float G, float softeningFactor, float theta){
+        float3 totalForce = float3.zero;
+        for(int i = 0; i < nodeCentersOfMass.Length; i++){
+            if(nodeTotalMasses[i]==0) continue;
+
+            float3 direction = nodeCentersOfMass[i] - particle.position;
+            float distance = math.length(direction);
+
+            if(distance==0) continue;
+
+            if ((nodeSideLengths[i] / distance) < theta) {
+                float forceMagnitude = G * particle.mass * nodeTotalMasses[i] / (distance * distance + softeningFactor*softeningFactor);
+                totalForce += math.normalize(direction) * forceMagnitude;
+            }
+        }
+        return totalForce;
+    }
+}
 public class GravityObject : MonoBehaviour, IObject
 {
     public float mass {get; set;}       
     public Vector3 velocity = Vector3.zero;   
-    public float G;              
-    public float softeningFactor; 
-    public float dampingFactor;
-    public float theta;
 
     public Vector3 Position { get; set; }
 
@@ -21,11 +55,10 @@ public class GravityObject : MonoBehaviour, IObject
     /// </summary>
     /// <param name="others">List of other GravityObject particles in the simulation</param>
     /// <param name="timeStep">Time step for the Euler integration</param>
-    public void ApplyForces(GravityObject[] others, List<PointOctreeNode<GravityObject>> nodes, float timeStep)
+    public void ApplyForces(Vector3 force,float timeStep)
     {
         // Calculate total gravitational acceleration acting on this particle
-        Vector3 totalForce = CalculateGravitationalForce(others) + CalculateLargeScaleInteractions(nodes);
-        Vector3 totalAcceleration = totalForce/mass;
+        Vector3 totalAcceleration = force/mass;
         velocity += totalAcceleration * timeStep;
     }
 
@@ -33,58 +66,16 @@ public class GravityObject : MonoBehaviour, IObject
     /// Updates the position of the particle based on its current velocity, using Euler's method.
     /// </summary>
     /// <param name="timeStep">Time step for position update</param>
-    public void UpdatePosition(float timeStep)
+    public void UpdatePosition(float3 newPos)
     {
-        // Apply damping to control velocity growth
-        // Update position based on the current velocity
-        transform.position += velocity * timeStep;
+        transform.position = newPos;
         Position = transform.position;
     }
-    public Vector3 CalculateLargeScaleInteractions(List<PointOctreeNode<GravityObject>> nodes){
-        Vector3 totalForce = Vector3.zero;
-
-        foreach (var node in nodes) {
-            // node.CalculateCenterOfMass();
-            if (node.TotalMass == 0) continue; // Skip empty nodes
-
-        Vector3 direction = node.CenterOfMass - this.Position;
-        float distance = direction.magnitude;
-
-        if (distance == 0) continue; // Skip if positions overlap to avoid division by zero
-
-        // Only apply the Barnes-Hut criterion without any close-scale calculations
-        if ((node.SideLength / distance) < theta) {
-            // Treat the node as a single mass point
-            float forceMagnitude = G * this.mass * node.TotalMass / (distance * distance);
-            totalForce += direction.normalized * forceMagnitude;
-        }
+    public Vector3 getPosition(){
+        Position = transform.position;
+        return Position;
     }
-    Debug.Log(totalForce);
-    return totalForce; // Return the total gravitational force as a Vector3
-    }
-
-    /// <summary>
-    /// Calculates the total gravitational acceleration on this particle from all other particles.
-    /// </summary>
-    /// <param name="others">List of other GravityObject particles in the simulation</param>
-    /// <returns>Total gravitational acceleration as a Vector3</returns>
-    private Vector3 CalculateGravitationalForce(GravityObject[] others)
-    {
-        Vector3 force = Vector3.zero;
-
-        // Loop through each other particle and calculate the gravitational effect
-        foreach (var other in others)
-        {
-            if (other == this) continue;  // Skip self-interaction
-
-            // Calculate the direction and softened distance between particles
-            Vector3 direction = other.transform.position - transform.position;
-            float distance = Mathf.Sqrt(direction.sqrMagnitude + softeningFactor * softeningFactor); // Softened distance
-
-            // Calculate gravitational acceleration and add to the total
-            force += G * other.mass * this.mass / (distance * distance) * direction.normalized;
-        }
-
-        return force;
+    public Vector3 getVelocity(){
+        return velocity;
     }
 }

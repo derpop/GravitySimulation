@@ -19,7 +19,7 @@
     <RootNamespace></RootNamespace>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <AssemblyName>Assembly-CSharp</AssemblyName>
+    <AssemblyName>Unity.Burst</AssemblyName>
     <TargetFramework>netstandard2.1</TargetFramework>
     <BaseDirectory>.</BaseDirectory>
   </PropertyGroup>
@@ -32,7 +32,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <NoWarn>0169;USG0001</NoWarn>
-    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -41,7 +41,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <NoWarn>0169;USG0001</NoWarn>
-    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <NoStandardLibraries>true</NoStandardLibraries>
@@ -65,11 +65,63 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.44f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\PointOctree.cs" />
-    <Compile Include="Assets\PointOctreeNode.cs" />
-    <Compile Include="Assets\CameraController.cs" />
-    <Compile Include="Assets\GravitySimulator.cs" />
-    <Compile Include="Assets\GravityObject.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\BurstRuntime.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\CompilerServices\Constant.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\Bmi2.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\Avx2.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\Arm\NEON_AArch64_rdma.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\Popcnt.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\Fma.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\Arm\NEON_AArch64_dotprod.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\Csr.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\Arm\NEON_AArch64.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\Sse4_1.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\NoAliasAttribute.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Editor\BurstAssemblyDisable.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Editor\BurstLoader.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Editor\BurstEditorOptions.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\Arm\NEON.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\BurstCompiler.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\CompilerServices\Loop.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\Sse2.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\FunctionPointer.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\Arm\NEON_ctor.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\SafeStringArrayHelper.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\CompilerServices\SkipLocalsInitAttribute.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\f16.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Editor\BurstReflection.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\CompilerServices\IgnoreWarningAttribute.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\v64.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\SimdDebugViews.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\BurstString.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\BurstCompilerOptions.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Editor\BurstCompileTarget.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\SharedStatic.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\Arm\NEON_AArch64_crypto.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\F16C.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\CompilerServices\Aliasing.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\v128.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\CompilerServices\SPMD.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\v256.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\Sse4_2.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\Bmi1.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\Common.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\Avx.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\CompilerServices\Hint.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\CompilerServices\AssumeRangeAttribute.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\Common.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\BurstExecutionEnvironment.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\Sse.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\Arm\NEON_AArch64_fp16.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\BurstCompileAttribute.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\BurstString.Float.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\Ssse3.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Intrinsics\x86\Sse3.cs" />
+    <Compile Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\DiagnosticId.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Unity.Burst.asmdef" />
+    <None Include="Library\PackageCache\com.unity.burst@1.8.18\Runtime\Editor\Unity.Burst.ForEditor.asmref" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -404,24 +456,20 @@
       <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.44f1\Editor\Data\Managed\UnityEngine\UnityEditor.UnityConnectModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>Library\PackageCache\com.unity.ext.nunit@2.0.3\net40\unity-custom\nunit.framework.dll</HintPath>
+    <Reference Include="UnityEditor.Graphs">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.44f1\Editor\Data\Managed\UnityEditor.Graphs.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="ReportGeneratorMerged">
-      <HintPath>Library\PackageCache\com.unity.testtools.codecoverage@1.2.6\lib\ReportGenerator\ReportGeneratorMerged.dll</HintPath>
+    <Reference Include="UnityEditor.WebGL.Extensions">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.44f1\Editor\Data\PlaybackEngines\WebGLSupport\UnityEditor.WebGL.Extensions.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.VisualScripting.Antlr3.Runtime">
-      <HintPath>Library\PackageCache\com.unity.visualscripting@1.9.4\Runtime\VisualScripting.Flow\Dependencies\NCalc\Unity.VisualScripting.Antlr3.Runtime.dll</HintPath>
+    <Reference Include="UnityEditor.WindowsStandalone.Extensions">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.44f1\Editor\Data\PlaybackEngines\WindowsStandaloneSupport\UnityEditor.WindowsStandalone.Extensions.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.Collections.LowLevel.ILSupport">
-      <HintPath>Library\PackageCache\com.unity.collections@2.5.1\Unity.Collections.LowLevel.ILSupport\Unity.Collections.LowLevel.ILSupport.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Mono.Cecil">
-      <HintPath>Library\PackageCache\com.unity.nuget.mono-cecil@1.11.4\Mono.Cecil.dll</HintPath>
+    <Reference Include="Unity.Burst.Unsafe">
+      <HintPath>Library\PackageCache\com.unity.burst@1.8.18\Unity.Burst.Unsafe.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="netstandard">
@@ -914,45 +962,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="Unity.XR.Management.csproj" />
-    <ProjectReference Include="Unity.EditorCoroutines.Editor.csproj" />
-    <ProjectReference Include="UnityEngine.XR.LegacyInputHelpers.csproj" />
-    <ProjectReference Include="Unity.Burst.csproj" />
-    <ProjectReference Include="Unity.PlasticSCM.Editor.csproj" />
-    <ProjectReference Include="Unity.Burst.Editor.csproj" />
-    <ProjectReference Include="Unity.ProBuilder.csproj" />
-    <ProjectReference Include="Unity.Timeline.Editor.csproj" />
-    <ProjectReference Include="Unity.VisualScripting.Shared.Editor.csproj" />
-    <ProjectReference Include="UnityEditor.SpatialTracking.csproj" />
-    <ProjectReference Include="Unity.VisualStudio.Editor.csproj" />
     <ProjectReference Include="UnityEditor.UI.csproj" />
-    <ProjectReference Include="Unity.VisualScripting.Core.csproj" />
-    <ProjectReference Include="UnityEngine.SpatialTracking.csproj" />
-    <ProjectReference Include="Unity.VisualScripting.Core.Editor.csproj" />
-    <ProjectReference Include="Unity.ProBuilder.AddOns.Editor.csproj" />
-    <ProjectReference Include="Unity.Rider.Editor.csproj" />
-    <ProjectReference Include="UnityEditor.XR.LegacyInputHelpers.csproj" />
     <ProjectReference Include="UnityEngine.UI.csproj" />
-    <ProjectReference Include="Unity.VisualScripting.Flow.csproj" />
-    <ProjectReference Include="Unity.VisualScripting.Flow.Editor.csproj" />
-    <ProjectReference Include="Unity.Mathematics.Editor.csproj" />
-    <ProjectReference Include="Unity.Timeline.csproj" />
-    <ProjectReference Include="Unity.TestTools.CodeCoverage.Editor.OpenCover.Mono.Reflection.csproj" />
-    <ProjectReference Include="Unity.ProBuilder.Editor.csproj" />
-    <ProjectReference Include="Unity.VisualScripting.SettingsProvider.Editor.csproj" />
-    <ProjectReference Include="Unity.Performance.Profile-Analyzer.Editor.csproj" />
-    <ProjectReference Include="Unity.TestTools.CodeCoverage.Editor.csproj" />
-    <ProjectReference Include="Unity.TestTools.CodeCoverage.Editor.OpenCover.Model.csproj" />
-    <ProjectReference Include="Unity.XR.Management.Editor.csproj" />
-    <ProjectReference Include="Unity.Collections.csproj" />
-    <ProjectReference Include="Unity.VisualScripting.State.Editor.csproj" />
-    <ProjectReference Include="Unity.Collections.Editor.csproj" />
-    <ProjectReference Include="Unity.Mathematics.csproj" />
-    <ProjectReference Include="Unity.TextMeshPro.csproj" />
-    <ProjectReference Include="Unity.TextMeshPro.Editor.csproj" />
-    <ProjectReference Include="Unity.ProBuilder.AssetIdRemapUtility.csproj" />
-    <ProjectReference Include="Unity.VisualScripting.State.csproj" />
-    <ProjectReference Include="Unity.VSCode.Editor.csproj" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <ItemGroup>
