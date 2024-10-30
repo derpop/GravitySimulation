@@ -352,17 +352,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16b2fc8c4b8769441bfcb0640b96b08b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  numParticlesPerGalaxy: 500
-  G: 0.98
-  softeningFactor: 25.96
-  localRadius: 20
+  numParticlesPerGalaxy: 1000
+  G: 0.65
+  softeningFactor: 9.14
+  localRadius: 1
   GalaxySize: 9.3
-  centralMass: 6.8
-  theta: 0.36
-  minMaxMassValues: {x: 5.19, y: 9.5}
-  simulationBounds: {x: 100, y: 100, z: 100}
-  Galaxy1Position: {x: 30, y: 0, z: 0}
-  Galaxy2Position: {x: -30, y: 0, z: 0}
+  centralMass: 181.3
+  theta: 0.92
+  thresholdDistance: 4.13
+  softeningRate: 10.47
+  largeScalesSoftening: 9.14
+  largeScaleG: 0.62
+  minMaxMassValues: {x: 1, y: 3}
+  simulationBounds: {x: 50, y: 50, z: 50}
+  Galaxy1Position: {x: 10, y: 0, z: 1}
+  Galaxy2Position: {x: -10, y: 0, z: -10}
   Galaxy1Velocity: {x: 0, y: 0, z: 0}
   Galaxy2Velocity: {x: 0, y: 0, z: 0}
   gravityObject: {fileID: -5996030633160264752, guid: 4cf594726bd5e61439a3e9f4319d57e9, type: 3}

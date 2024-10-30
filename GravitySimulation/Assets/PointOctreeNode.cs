@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Experimental.GraphView;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class PointOctreeNode<T> where T : IObject {
@@ -29,7 +29,7 @@ public class PointOctreeNode<T> where T : IObject {
 	Bounds[] childBounds;
 
 	// Maximum objects allowed before subdivision
-	const int NUM_OBJECTS_ALLOWED = 15;
+	const int NUM_OBJECTS_ALLOWED = 3;
 
 	// Original bounds size for resizing after temporary expansion
 	Vector3 actualBoundsSize;
@@ -150,6 +150,14 @@ public class PointOctreeNode<T> where T : IObject {
 				children[i].GetAll(result);
 			}
 		}
+	}
+	public List<float3> GetAllPOSInNode(){
+		List<float3> result = new List<float3>();
+		foreach (var obj in objects)
+		{
+			result.Add(obj.Pos);
+		}
+		return result;
 	}
 
 	// Set children for this node
@@ -379,8 +387,5 @@ public class PointOctreeNode<T> where T : IObject {
             }
         }
     }
-	}
-	public PointOctreeNode<T>[] getChildren(){
-		return children;
 	}
 }

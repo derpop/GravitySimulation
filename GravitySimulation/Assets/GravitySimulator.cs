@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using Unity.Burst;
 using Unity.Collections;
@@ -8,6 +9,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 
 public class GravitySimulator : MonoBehaviour
@@ -19,6 +21,10 @@ public class GravitySimulator : MonoBehaviour
     public float GalaxySize;
     public float centralMass;
     public float theta;
+    public float thresholdDistance;    // Distance within which repulsive force acts
+    public float softeningRate;    // Strength of the repulsive force
+    public float largeScalesSoftening;
+    public float largeScaleG;
     public Vector2 minMaxMassValues;
     public Vector3 simulationBounds;
     public Vector3 Galaxy1Position;
@@ -45,28 +51,24 @@ public class GravitySimulator : MonoBehaviour
 
         // Instantiate particle
         GravityObject particle = Instantiate(gravityObject, position, Quaternion.identity);
-        particle.mass = Random.Range(minMaxMassValues.x, minMaxMassValues.y);
+        particle.mass = 1;
 
         // Calculate initial tangential velocity, reduced based on distance
         Vector3 toCenter = galaxyPosition - particle.transform.position;
         Vector3 tangentialVelocity = Vector3.Cross(toCenter.normalized, Vector3.up) * Mathf.Sqrt(G * centralMass / toCenter.magnitude);
-        tangentialVelocity *= 0.5f; // Scale down tangential velocity to reduce outward scattering
+        tangentialVelocity *= 0.02f; // Scale down tangential velocity to reduce outward scattering
 
         // Apply tangential velocity and initial velocity of the galaxy
         particle.velocity = tangentialVelocity + initialVelocity;
         gravList.Add(particle);
     }
 }
-
-// Box-Muller transform to generate Gaussian-distributed values
     private float BoxMullerGaussian() {
     float u1 = Random.Range(0.0001f, 1f); // Uniform(0,1] random values
     float u2 = Random.Range(0.0001f, 1f);
     float randStdNormal = Mathf.Sqrt(-2.0f * Mathf.Log(u1)) * Mathf.Sin(2.0f * Mathf.PI * u2); // Standard normal
     return randStdNormal;
     }
-
-
     public bool outOfBounds(GravityObject obj) {
     
     Vector3 pos = obj.transform.position;
@@ -92,61 +94,34 @@ public class GravitySimulator : MonoBehaviour
         gravList = new List<GravityObject>();
         gravityObjects = new PointOctree<GravityObject>(Math.Max(Math.Max(simulationBounds.x,simulationBounds.y),simulationBounds.z), transform.position, 1);
         CreateGalaxyGauss(numParticlesPerGalaxy,Galaxy1Position,Galaxy1Velocity);
-        // CreateGalaxy(numParticlesPerGalaxy,Galaxy2Position,Galaxy2Velocity);
-        // CreateEqualDistribution(numParticlesPerGalaxy/10);
+        CreateGalaxyGauss(numParticlesPerGalaxy,Galaxy2Position,Galaxy2Velocity);
+        // CreateEqualDistribution(numParticlesPerGalaxy);
         nodes = gravityObjects.GetAllNodes();
     }
 
-    // Update is called once per frame
-//     void Update()
-// {
-//     List<GravityObject> toRemove = new List<GravityObject>();
-//     frameCount++;
-//     List<PointOctreeNode<GravityObject>> nodes = gravityObjects.GetAllNodes();
-//     float timeStep = Time.fixedDeltaTime;
-//     int numChecks =0;
-//     if(frameCount%refresh==0){
-//         gravityObjects.rebuild(gravList);
-//         nodes = gravityObjects.GetAllNodes();
-//         gravityObjects.getRoot().CalculateCenterOfMass();
-//         foreach (GravityObject obj in gravList)
-//         {
-//         GravityObject[] nearbyObjects = gravityObjects.GetNearby(obj.transform.position, localRadius);
-
-//         numChecks += nearbyObjects.Length;
-//         obj.UpdatePosition(timeStep);
-//         if(outOfBounds(obj)){
-//             toRemove.Add(obj);
-//         }
-//         }
-//     }
-//     gravList.RemoveAll(obj => toRemove.Contains(obj));
-//     foreach (var obj in toRemove) {
-//         UnityEngine.Object.Destroy(obj.gameObject); // Assuming each GravityObject has an associated GameObject
-//     }
-    
-//     // Clear toRemove list after destruction
-//     toRemove.Clear();
-//     Debug.Log(numChecks);
-
-// }
     void Update(){
         List<GravityObject> toRemove = new List<GravityObject>();
         frameCount++;
         float timeStep = Time.fixedDeltaTime;
         int numChecks = 0;
 
-        List<float3> centersOfMass = new List<float3>();
-        List<float> totalMasses = new List<float>();
-        List<float> sideLengths = new List<float>();
 
         gravityObjects.rebuild(gravList);
         gravityObjects.getRoot().CalculateCenterOfMass();
-        gravityObjects.getAllNodes(gravityObjects.getRoot(),centersOfMass,totalMasses,sideLengths);
+        List<PointOctreeNode<GravityObject>> nodes = gravityObjects.GetAllNodes();
+        NativeArray<NodeData> nodeData  = new NativeArray<NodeData>(nodes.Count,Allocator.TempJob);
 
-        NativeArray<float3> nodeCentersOfMass = new NativeArray<float3>(centersOfMass.ToArray(), Allocator.TempJob);
-        NativeArray<float> nodeTotalMasses = new NativeArray<float>(totalMasses.ToArray(), Allocator.TempJob);
-        NativeArray<float> nodeSideLengths = new NativeArray<float>(sideLengths.ToArray(), Allocator.TempJob);
+        for (int i = 0; i < nodes.Count; i++)
+        {
+            var node = nodes[i];
+            nodeData[i] = new NodeData{
+                CenterOfMass=node.CenterOfMass,
+                TotalMass=node.TotalMass,
+                position=node.Center,
+                Size=node.SideLength,
+                isLeaf=!node.HasChildren,
+            };
+        }
 
         NativeArray<GravityObjectData> particleArray  = new NativeArray<GravityObjectData>(gravList.Count,Allocator.TempJob);
 
@@ -165,6 +140,7 @@ public class GravitySimulator : MonoBehaviour
                 velocity = particle.velocity,
                 mass = particle.mass
             };
+        
             neighborhoodIndex[i] = flatIndex;
             var neighbors = gravityObjects.GetNearby(particle.Position, localRadius);
             foreach (var neighbor in neighbors)
@@ -187,26 +163,28 @@ public class GravitySimulator : MonoBehaviour
             neighborhoodIndex = neighborhoodIndex,
             forces = forces,
             G = G,
-            softeningFactor = softeningFactor
+            baseSofteningFactor = softeningFactor,
+            softeningRate = softeningRate,
+            thresholdDistance = thresholdDistance
         };
         JobHandle localForcesJobHandle = localForcesJob.Schedule(particleArray.Length, 64);
-        LargeScaleForcesJob largeScaleForcesJob = new LargeScaleForcesJob{
+
+        LargeScaleForceJob largeScaleForceJob = new LargeScaleForceJob{
             particles = particleArray,
-            nodeCentersOfMass = nodeCentersOfMass,
-            nodeTotalMasses = nodeTotalMasses,
-            nodeSideLengths = nodeSideLengths,
+            nodes = nodeData,
             forces = forces,
-            G = G,
-            softeningFactor = softeningFactor,
-            theta = theta   
+            G = largeScaleG,
+            softeningFactor = largeScalesSoftening,
+            theta = theta
+
         };
-        JobHandle largeScaleForcesJobHandle = largeScaleForcesJob.Schedule(particleArray.Length, 64, localForcesJobHandle);
+        JobHandle largeScaleForceJobHandle = largeScaleForceJob.Schedule(particleArray.Length,64,localForcesJobHandle);
         UpdatePositionJob updatePositionJob = new UpdatePositionJob{
             particles = particleArray,
             forces = forces,
             deltaTime = timeStep
         };
-        JobHandle updatePositionJobHandle = updatePositionJob.Schedule(particleArray.Length, 64, largeScaleForcesJobHandle);
+        JobHandle updatePositionJobHandle = updatePositionJob.Schedule(particleArray.Length, 64, largeScaleForceJobHandle);
         updatePositionJobHandle.Complete();
         for (int i = 0; i < gravList.Count; i++) {
             gravList[i].UpdatePosition(particleArray[i].position);
@@ -218,16 +196,14 @@ public class GravitySimulator : MonoBehaviour
         nearbyParticlesFlatArray.Dispose();
         particleArray.Dispose();
         forces.Dispose();
-        nodeCentersOfMass.Dispose();
-        nodeTotalMasses.Dispose();
-        nodeSideLengths.Dispose();
+        nodeData.Dispose();
 
         gravList.RemoveAll(obj => toRemove.Contains(obj));
         // foreach (var obj in toRemove) {
         //         Destroy(obj.gameObject);
         // }
         toRemove.Clear();
-        Debug.Log(numChecks);
+        Debug.Log(numChecks+ " " + gravityObjects.getRoot().CenterOfMass);
     }
 
     void OnDrawGizmos() 
@@ -245,65 +221,118 @@ public struct LocalForcesJob : IJobParallelFor {
     [Unity.Collections.ReadOnly] public NativeArray<int> neighborhoodIndex;
     public NativeArray<float3> forces;
     public float G;
-    public float softeningFactor;
+    public float baseSofteningFactor;
+    public float softeningRate;     
+    public float thresholdDistance;
 
-    public void Execute(int index){
+    public void Execute(int index) {
         GravityObjectData particle = particles[index];
         float3 totalForce = float3.zero;
-        
+
         int startIndex = neighborhoodIndex[index];
         int endIndex = neighborhoodIndex[index + 1];
 
         for (int i = startIndex; i < endIndex; i++) {
             GravityObjectData other = nearbyParticlesFlatArray[i];
-            totalForce += GravityCalculations.CalculateLocalForce(particle, other, G, softeningFactor);
+            totalForce += ForceCalculator.CalculateSoftenedForce(
+                particle,
+                other,
+                G,
+                baseSofteningFactor,
+                softeningRate,
+                thresholdDistance
+            );
         }
 
         forces[index] = totalForce;
     }
-
-}
+} 
 [BurstCompile]
-public struct LargeScaleForcesJob : IJobParallelFor{
+public struct LargeScaleForceJob : IJobParallelFor{
     [Unity.Collections.ReadOnly] public NativeArray<GravityObjectData> particles;
-    [Unity.Collections.ReadOnly] public NativeArray<float3> nodeCentersOfMass; 
-    [Unity.Collections.ReadOnly]  public NativeArray<float> nodeTotalMasses;
-    [Unity.Collections.ReadOnly]  public NativeArray<float> nodeSideLengths;
+    [Unity.Collections.ReadOnly] public NativeArray<NodeData> nodes;
     public NativeArray<float3> forces;
-    public float G; 
     public float theta;
+    public float G;
     public float softeningFactor;
-    public void Execute(int index) {
+    public void Execute(int index){
         GravityObjectData particle = particles[index];
-        float3 totalForce = GravityCalculations.CalculateLargeScaleForce(
-            particle,
-            nodeCentersOfMass,
-            nodeTotalMasses,
-            nodeSideLengths,
-            G,
-            softeningFactor,
-            theta
-        );
-
-        // Accumulate the large-scale force into the forces array
-        forces[index] += totalForce;
+        float3 totalForce = ForceCalculator.CalculateLargeScaleForce(particle,nodes,G,theta,softeningFactor);
+        forces[index]+=totalForce;
     }
+    
 }
+
+
 [BurstCompile]
 public struct UpdatePositionJob : IJobParallelFor{
-    public NativeArray<GravityObjectData> particles; 
-    [Unity.Collections.ReadOnly] public NativeArray<float3> forces; 
+    public NativeArray<GravityObjectData> particles;
+    [Unity.Collections.ReadOnly] public NativeArray<float3> forces;
     public float deltaTime;
 
-    public void Execute(int index){
-
+    public void Execute(int index) {
         GravityObjectData particle = particles[index];
 
+        // Step 1: Half-step velocity update
         float3 acceleration = forces[index] / particle.mass;
-        particle.velocity += acceleration * deltaTime;
+        particle.velocity += 0.5f * acceleration * deltaTime;
 
+        // Step 2: Full position update
         particle.position += particle.velocity * deltaTime;
 
+        // Step 3: Half-step velocity update with new acceleration
+        particle.velocity += 0.5f * acceleration * deltaTime;
+
+        // Store the updated particle data back
         particles[index] = particle;
+    }
+}
+public static class ForceCalculator{
+    [BurstCompile]
+    public static float3 CalculateSoftenedForce(GravityObjectData particle, GravityObjectData other, float G, float baseSofteningFactor, float softeningRate, float thresholdDistance) {
+    float3 direction = other.position - particle.position;
+    float distance = math.length(direction);
+    
+    // Calculate softening factor based on distance
+    float softeningFactor;
+    if (distance < thresholdDistance) {
+        softeningFactor = baseSofteningFactor * math.exp(softeningRate * (thresholdDistance - distance));
+    } else {
+        softeningFactor = baseSofteningFactor;
+    }
+
+    // Calculate gravitational force with distance-dependent softening
+    float distanceSquared = distance * distance + softeningFactor * softeningFactor;
+    float forceMagnitude = G * particle.mass * other.mass / distanceSquared;
+    return math.normalize(direction) * forceMagnitude;
+    }
+    [BurstCompile]
+    public static float3 CalculateLargeScaleForce(GravityObjectData particle, NativeArray<NodeData> nodes, float G, float theta, float softeningFactor){
+    float3 totalForce = float3.zero;
+
+    // Iterate over all nodes to compute forces
+    for (int i = 0; i < nodes.Length; i++)
+    {
+        NodeData node = nodes[i];
+
+        // Skip empty nodes
+        if (node.TotalMass == 0) continue;
+
+        // Check if the node contains the current particle's position
+        bool isSameNode = math.any(math.abs(node.position - particle.position) < node.Size * 0.5f);
+
+            // For inter-node interactions, use the Barnes-Hut approximation
+        float3 direction = node.CenterOfMass - particle.position;
+        float distance = math.length(direction);
+        float s = node.Size;
+
+            // Apply theta criterion
+        if (s / distance < theta || node.isLeaf){
+            float softenedDistance = distance + softeningFactor;
+            float forceMagnitude = (G * particle.mass * node.TotalMass) / (softenedDistance * softenedDistance * softenedDistance);
+            totalForce += direction * forceMagnitude;
+        }
+    }
+    return totalForce;
     }
 }

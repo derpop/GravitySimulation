@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Unity.Mathematics;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PointOctree<T> where T : IObject{
@@ -18,18 +16,6 @@ public class PointOctree<T> where T : IObject{
 		initialSize = initialWorldSize;
 		minSize = minNodeSize;
 		rootNode = new PointOctreeNode<T>(initialSize, minSize, initialWorldPos);
-	}
-	public void getAllNodes(PointOctreeNode<GravityObject> node, List<float3> centersOfMass, List<float> totalMasses, List<float> sideLengths){
-		if(node == null) return;
-		centersOfMass.Add(node.CenterOfMass);
-		totalMasses.Add(node.TotalMass);
-		sideLengths.Add(node.SideLength);
-		if(node.HasChildren){
-			foreach (var child in node.getChildren())
-			{
-				getAllNodes(child, centersOfMass, totalMasses, sideLengths);
-			}
-		}
 	}
 	public void rebuild(List<T> objects){
 		rootNode = new PointOctreeNode<T>(initialSize, minSize, Vector3.zero);
