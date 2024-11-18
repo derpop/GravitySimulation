@@ -1,3 +1,6 @@
+// Implementation adapted from Unity Octree by Nition.
+
+
 using System.Collections.Generic;
 using UnityEngine;
 
