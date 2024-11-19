@@ -10,7 +10,7 @@ This project simulates the gravitational interactions and eventual collision of 
 - **Realistic Physics**:
   - Gravity based on Newtonian mechanics.
   - Accurate computation of center of mass and total mass for tree nodes.
-- **Scalability**: Designed to handle up to 10,000 objects.
+- **Scalability**: Designed to handle up to 10,000 objects (once optimization is done, hopefully even more).
 - **3D Visualization**: Real-time galaxy interactions with adjustable camera controls.
 - **Customizable Parameters**:
   - Initial positions, velocities, and masses of celestial objects.
