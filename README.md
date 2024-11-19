@@ -1,7 +1,7 @@
 # Gravitational Simulation of Colliding Galaxies
 
 ## Overview
-This project simulates the gravitational interactions and eventual collision of galaxies using a **Barnes-Hut algorithm** for efficient computation. It models up to **2,000 particles**(until parallization fully implemented), representing stars or celestial objects, with realistic physics to study the dynamics of galactic evolution and interaction.
+This project simulates the gravitational interactions and eventual collision of galaxies using a **Barnes-Hut algorithm** for efficient computation. It models up to **2,000 particles**(until parallization fully implemented), representing stars or any other stellar objects, with realistic physics to study the dynamics of galactic evolution and interaction.
 ---
 
 ## Features
